@@ -20,7 +20,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
+public class Product extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,6 +36,8 @@ public class Product {
 
     private String slug;
 
+    @Column(name = "active", nullable = false)
+    private boolean active = true;
 
     @Column(nullable = false)
     private Integer stockQuantity;
