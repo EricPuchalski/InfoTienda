@@ -6,6 +6,8 @@ import com.infotienda.dto.ProductRequest;
 import com.infotienda.dto.ProductResponse;
 import com.infotienda.service.ProductService;
 import java.util.List;
+
+import com.infotienda.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,17 +27,17 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ADMIN')")
 public class ProductController {
 
     private final ProductService productService;
-    private final ObjectMapper objectMapper;
+    private final JsonUtil jsonUtil;
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductResponse> createProduct(
             @RequestPart("product") String productJson,
             @RequestPart("image") MultipartFile image) {
-        ProductRequest productRequest = parseProductRequest(productJson);
+        ProductRequest productRequest = jsonUtil.parseProductRequest(productJson);
         return new ResponseEntity<>(productService.createProduct(productRequest, image), HttpStatus.CREATED);
     }
 
@@ -49,26 +51,22 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Long id,
             @RequestPart("product") String productJson,
             @RequestPart(value = "image", required = false) MultipartFile image) {
-        ProductRequest productRequest = parseProductRequest(productJson);
+        ProductRequest productRequest = jsonUtil.parseProductRequest(productJson);
         return ResponseEntity.ok(productService.updateProduct(id, productRequest, image));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
 
-    private ProductRequest parseProductRequest(String productJson) {
-        try {
-            return objectMapper.readValue(productJson, ProductRequest.class);
-        } catch (JsonProcessingException ex) {
-            throw new HttpMessageNotReadableException("Invalid 'product' JSON payload", ex, null);
-        }
-    }
+
 }

@@ -15,6 +15,7 @@ import com.infotienda.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -28,6 +29,11 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -49,11 +55,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/auth/**", "/login", "/login/oauth2/**", "/oauth2/**").permitAll()
-                        .requestMatchers("/api/v1/admin/**", "/api/v1/categories/**", "/api/v1/products/**").hasAuthority(Role.ADMIN.name())
-                        .requestMatchers("/api/v1/user/**").hasAuthority(Role.USER.name())
+                        .requestMatchers("/api/v1/admin/**", "/api/v1/categories/**").hasAuthority(Role.ADMIN.name())
+                        .requestMatchers("/api/v1/user").hasAnyAuthority(Role.USER.name(), Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET,"/api/v1/products/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products/**").hasAuthority(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAuthority(Role.ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -93,7 +102,20 @@ public class SecurityConfig {
             cookieUtil.createCookie(response, CookieConstants.ACCESS_TOKEN_COOKIE_NAME, jwtToken, jwtService.getJwtExpiration());
             cookieUtil.createCookie(response, CookieConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, jwtService.getRefreshExpiration());
 
-            response.sendRedirect("/"); // Redirect to a frontend URL
+            response.sendRedirect("http://localhost:5173/"); // Redirect to a frontend URL
         };
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        config.setAllowCredentials(true);
+        config.setExposedHeaders(List.of("Set-Cookie"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

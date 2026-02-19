@@ -1,6 +1,8 @@
 package com.infotienda.security.service;
 
+import com.infotienda.dto.UserResponse;
 import com.infotienda.exception.ResourceNotFoundException;
+import com.infotienda.mapper.UserMapper;
 import com.infotienda.model.AuthProvider;
 import com.infotienda.model.Role;
 import com.infotienda.model.User;
@@ -19,6 +21,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -28,11 +33,14 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final CookieUtil cookieUtil;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public void register(RegisterRequest request, HttpServletResponse response) {
         var user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
+                .createdAt(LocalDateTime.now())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
@@ -52,6 +60,12 @@ public class AuthenticationService {
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         generateAndSetTokens(response, new CustomUserDetails(user));
+    }
+
+    public UserResponse getMe(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceAccessException("User not found with email: \" + email"));
+        return userMapper.toDto(user);
     }
 
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) {

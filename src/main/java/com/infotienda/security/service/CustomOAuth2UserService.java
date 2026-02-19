@@ -5,6 +5,8 @@ import com.infotienda.model.Role;
 import com.infotienda.model.User;
 import com.infotienda.security.model.CustomOAuth2User;
 import com.infotienda.security.repository.UserRepository;
+
+import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -43,6 +45,7 @@ public class CustomOAuth2UserService extends OidcUserService {
                     .lastName(oidcUser.getAttribute("family_name"))
                     .role(Role.USER)
                     .provider(AuthProvider.GOOGLE)
+                    .createdAt(LocalDateTime.now())
                     .build();
         }
         userRepository.save(user);
