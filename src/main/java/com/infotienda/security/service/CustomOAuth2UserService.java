@@ -1,8 +1,8 @@
 package com.infotienda.security.service;
 
-import com.infotienda.model.AuthProvider;
-import com.infotienda.model.Role;
-import com.infotienda.model.User;
+import com.infotienda.security.model.AuthProvider;
+import com.infotienda.security.model.Role;
+import com.infotienda.security.model.User;
 import com.infotienda.security.model.CustomOAuth2User;
 import com.infotienda.security.repository.UserRepository;
 
@@ -32,8 +32,6 @@ public class CustomOAuth2UserService extends OidcUserService {
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if (user.getProvider() == AuthProvider.LOCAL) {
-                // Here you can throw an exception or handle the case where the user
-                // already exists with a local account. For simplicity, we'll update the user.
                 user.setProvider(AuthProvider.GOOGLE);
             }
             user.setFirstName(oidcUser.getAttribute("given_name"));

@@ -1,6 +1,6 @@
 package com.infotienda.security.repository;
 
-import com.infotienda.model.User;
+import com.infotienda.security.model.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

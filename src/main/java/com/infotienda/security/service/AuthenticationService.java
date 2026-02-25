@@ -1,17 +1,17 @@
 package com.infotienda.security.service;
 
-import com.infotienda.dto.UserResponse;
-import com.infotienda.exception.ResourceNotFoundException;
-import com.infotienda.mapper.UserMapper;
-import com.infotienda.model.AuthProvider;
-import com.infotienda.model.Role;
-import com.infotienda.model.User;
+import com.infotienda.security.dto.UserResponse;
+import com.infotienda.core.exception.ResourceNotFoundException;
+import com.infotienda.security.mapper.UserMapper;
+import com.infotienda.security.model.AuthProvider;
+import com.infotienda.security.model.Role;
+import com.infotienda.security.model.User;
 import com.infotienda.security.dto.LoginRequest;
 import com.infotienda.security.dto.RegisterRequest;
 import com.infotienda.security.model.CustomUserDetails;
 import com.infotienda.security.repository.UserRepository;
-import com.infotienda.constant.CookieConstants;
-import com.infotienda.util.CookieUtil;
+import com.infotienda.core.constant.CookieConstants;
+import com.infotienda.core.util.CookieUtil;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -126,7 +126,6 @@ public class AuthenticationService {
                 }
             });
         } catch (JwtException | IllegalArgumentException ignored) {
-            // Ignore invalid token data and continue clearing client-side cookies.
         }
     }
 

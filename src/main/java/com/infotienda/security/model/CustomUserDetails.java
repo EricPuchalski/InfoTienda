@@ -1,6 +1,6 @@
 package com.infotienda.security.model;
 
-import com.infotienda.model.User;
+
 import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

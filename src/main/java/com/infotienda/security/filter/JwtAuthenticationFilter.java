@@ -1,8 +1,8 @@
 package com.infotienda.security.filter;
 
 import com.infotienda.security.service.JwtService;
-import com.infotienda.constant.CookieConstants;
-import com.infotienda.util.CookieUtil;
+import com.infotienda.core.constant.CookieConstants;
+import com.infotienda.core.util.CookieUtil;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

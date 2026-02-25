@@ -1,6 +1,6 @@
 package com.infotienda.security.controller;
 
-import com.infotienda.dto.UserResponse;
+import com.infotienda.security.dto.UserResponse;
 import com.infotienda.security.dto.LoginRequest;
 import com.infotienda.security.dto.RegisterRequest;
 import com.infotienda.security.service.AuthenticationService;

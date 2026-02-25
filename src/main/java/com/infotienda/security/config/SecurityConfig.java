@@ -1,6 +1,6 @@
 package com.infotienda.security.config;
 
-import com.infotienda.model.Role;
+import com.infotienda.security.model.Role;
 import com.infotienda.security.filter.AuthRateLimitFilter;
 import com.infotienda.security.filter.JwtAuthenticationFilter;
 import com.infotienda.security.handler.RestAccessDeniedHandler;
@@ -10,8 +10,8 @@ import com.infotienda.security.model.CustomUserDetails;
 import com.infotienda.security.repository.UserRepository;
 import com.infotienda.security.service.CustomOAuth2UserService;
 import com.infotienda.security.service.JwtService;
-import com.infotienda.constant.CookieConstants;
-import com.infotienda.util.CookieUtil;
+import com.infotienda.core.constant.CookieConstants;
+import com.infotienda.core.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

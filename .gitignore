@@ -33,3 +33,5 @@ build/
 .vscode/
 docker-compose.yml
 /.agents
+refactor.py
+*.js
