@@ -26,6 +26,7 @@ public class ProductMapper {
         return Product.builder()
                 .name(productRequest.getName())
                 .category(category)
+                .active(true)
                 .slug(SlugUtil.generateSlug(productRequest.getName()))
                 .imageUrl(imageUrl)
                 .description(productRequest.getDescription())

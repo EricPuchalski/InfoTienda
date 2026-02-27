@@ -22,12 +22,12 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ADMIN')")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<CategoryResponse> createCategory(@Valid @RequestBody CategoryRequest request) {
         CategoryResponse created = categoryService.createCategory(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
