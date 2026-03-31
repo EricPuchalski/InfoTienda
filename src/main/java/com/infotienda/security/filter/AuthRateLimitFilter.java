@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -21,9 +20,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     private static final Map<String, RateLimitRule> RULES = Map.of(
-            "/api/auth/login", new RateLimitRule(10, Duration.ofMinutes(1)),
-            "/api/auth/register", new RateLimitRule(5, Duration.ofMinutes(5)),
-            "/api/auth/refresh", new RateLimitRule(30, Duration.ofMinutes(1))
+            "/api/v1/auth/login", new RateLimitRule(10, Duration.ofMinutes(1)),
+            "/api/v1/auth/register", new RateLimitRule(5, Duration.ofMinutes(5)),
+            "/api/v1/auth/refresh", new RateLimitRule(30, Duration.ofMinutes(1))
     );
 
     private final Map<String, ConcurrentLinkedDeque<Long>> requestsByClientAndPath = new ConcurrentHashMap<>();

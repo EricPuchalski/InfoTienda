@@ -18,7 +18,6 @@ public class ProductRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
-    @NotBlank(message = "Description is required")
     private String description;
 
     @NotNull(message = "Price is required")

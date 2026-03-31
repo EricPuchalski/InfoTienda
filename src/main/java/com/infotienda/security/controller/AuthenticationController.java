@@ -68,6 +68,10 @@ public class AuthenticationController {
     public ResponseEntity<UserResponse> getMe(
             @AuthenticationPrincipal UserDetails userDetails
     ) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         String email = userDetails.getUsername();
         if (email == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

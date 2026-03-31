@@ -13,18 +13,13 @@ import org.springframework.http.ResponseCookie;
 @Component
 public class CookieUtil {
 
-    @Value("${application.security.cookie.secure:true}")
-    private boolean secureCookie;
-
-    @Value("${application.security.cookie.same-site:Strict}")
-    private String sameSite;
 
     public void createCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .sameSite("Strict")
+                .sameSite("None")
                 .maxAge(maxAge);
 
         response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
@@ -45,9 +40,10 @@ public class CookieUtil {
                 .httpOnly(true)
                 .secure(true)
                 .path("/")
-                .sameSite("Strict")
+                .sameSite("None")
                 .maxAge(0);
 
         response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
     }
+
 }
