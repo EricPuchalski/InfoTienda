@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 
@@ -15,11 +14,23 @@ public class CookieUtil {
 
 
     public void createCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        createCookie(response, name, value, maxAge, true, true, "None");
+    }
+
+    public void createCookie(
+            HttpServletResponse response,
+            String name,
+            String value,
+            int maxAge,
+            boolean httpOnly,
+            boolean secure,
+            String sameSite
+    ) {
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, value)
-                .httpOnly(true)
-                .secure(true)
+                .httpOnly(httpOnly)
+                .secure(secure)
                 .path("/")
-                .sameSite("None")
+                .sameSite(sameSite)
                 .maxAge(maxAge);
 
         response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());
@@ -36,11 +47,21 @@ public class CookieUtil {
     }
 
     public void clearCookie(HttpServletResponse response, String name) {
+        clearCookie(response, name, true, true, "None");
+    }
+
+    public void clearCookie(
+            HttpServletResponse response,
+            String name,
+            boolean httpOnly,
+            boolean secure,
+            String sameSite
+    ) {
         ResponseCookie.ResponseCookieBuilder builder = ResponseCookie.from(name, "")
-                .httpOnly(true)
-                .secure(true)
+                .httpOnly(httpOnly)
+                .secure(secure)
                 .path("/")
-                .sameSite("None")
+                .sameSite(sameSite)
                 .maxAge(0);
 
         response.addHeader(HttpHeaders.SET_COOKIE, builder.build().toString());

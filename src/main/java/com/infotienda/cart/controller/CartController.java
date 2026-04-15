@@ -4,7 +4,9 @@ import com.infotienda.cart.dto.AddToCartRequest;
 import com.infotienda.cart.dto.CartResponse;
 import com.infotienda.cart.dto.UpdateCartItemRequest;
 import com.infotienda.cart.service.CartService;
-import com.infotienda.core.exception.ResourceNotFoundException;
+import com.infotienda.cart.service.GuestSessionService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,52 +20,78 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
+    private final GuestSessionService guestSessionService;
 
     @GetMapping
-    public ResponseEntity<CartResponse> getCart(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            throw new ResourceNotFoundException("User not authenticated");
+    public ResponseEntity<CartResponse> getCart(
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        if (userDetails != null) {
+            return ResponseEntity.ok(cartService.getCartForUser(userDetails.getUsername()));
         }
-        return ResponseEntity.ok(cartService.getCartForUser(userDetails.getUsername()));
+
+        String guestSessionId = guestSessionService.resolveOrCreateGuestSessionId(request, response);
+        return ResponseEntity.ok(cartService.getCartForGuestSession(guestSessionId));
     }
 
     @PostMapping("/items")
     public ResponseEntity<CartResponse> addItemToCart(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody AddToCartRequest request) {
-        if (userDetails == null) {
-            throw new ResourceNotFoundException("User not authenticated");
+            HttpServletRequest request,
+            HttpServletResponse response,
+            @Valid @RequestBody AddToCartRequest addRequest) {
+        if (userDetails != null) {
+            return ResponseEntity.ok(cartService.addItemToCart(userDetails.getUsername(), addRequest));
         }
-        return ResponseEntity.ok(cartService.addItemToCart(userDetails.getUsername(), request));
+
+        String guestSessionId = guestSessionService.resolveOrCreateGuestSessionId(request, response);
+        return ResponseEntity.ok(cartService.addItemToGuestCart(guestSessionId, addRequest));
     }
 
     @PutMapping("/items/{cartItemId}")
     public ResponseEntity<CartResponse> updateItemQuantity(
             @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest request,
+            HttpServletResponse response,
             @PathVariable Long cartItemId,
-            @Valid @RequestBody UpdateCartItemRequest request) {
-        if (userDetails == null) {
-            throw new ResourceNotFoundException("User not authenticated");
+            @Valid @RequestBody UpdateCartItemRequest updateRequest) {
+        if (userDetails != null) {
+            return ResponseEntity.ok(cartService.updateItemQuantity(userDetails.getUsername(), cartItemId, updateRequest));
         }
-        return ResponseEntity.ok(cartService.updateItemQuantity(userDetails.getUsername(), cartItemId, request));
+
+        String guestSessionId = guestSessionService.resolveOrCreateGuestSessionId(request, response);
+        return ResponseEntity.ok(cartService.updateGuestItemQuantity(guestSessionId, cartItemId, updateRequest));
     }
 
     @DeleteMapping("/items/{cartItemId}")
     public ResponseEntity<CartResponse> removeItemFromCart(
             @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest request,
+            HttpServletResponse response,
             @PathVariable Long cartItemId) {
-        if (userDetails == null) {
-            throw new ResourceNotFoundException("User not authenticated");
+        if (userDetails != null) {
+            return ResponseEntity.ok(cartService.removeItemFromCart(userDetails.getUsername(), cartItemId));
         }
-        return ResponseEntity.ok(cartService.removeItemFromCart(userDetails.getUsername(), cartItemId));
+
+        String guestSessionId = guestSessionService.resolveOrCreateGuestSessionId(request, response);
+        return ResponseEntity.ok(cartService.removeItemFromGuestCart(guestSessionId, cartItemId));
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> clearCart(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            throw new ResourceNotFoundException("User not authenticated");
+    public ResponseEntity<Void> clearCart(
+            @AuthenticationPrincipal UserDetails userDetails,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        if (userDetails != null) {
+            cartService.clearCart(userDetails.getUsername());
+            return ResponseEntity.noContent().build();
         }
-        cartService.clearCart(userDetails.getUsername());
+
+        String guestSessionId = guestSessionService.resolveOrCreateGuestSessionId(request, response);
+        cartService.clearGuestCart(guestSessionId);
         return ResponseEntity.noContent().build();
     }
 }

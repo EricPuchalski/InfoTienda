@@ -1,5 +1,7 @@
 package com.infotienda.security.service;
 
+import com.infotienda.cart.service.CartService;
+import com.infotienda.cart.service.GuestSessionService;
 import com.infotienda.security.dto.UserResponse;
 import com.infotienda.core.exception.ResourceNotFoundException;
 import com.infotienda.security.mapper.UserMapper;
@@ -16,6 +18,7 @@ import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +30,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
@@ -35,6 +39,8 @@ public class AuthenticationService {
     private final CookieUtil cookieUtil;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final CartService cartService;
+    private final GuestSessionService guestSessionService;
 
     public void register(RegisterRequest request, HttpServletResponse response) {
         var user = User.builder()
@@ -50,7 +56,7 @@ public class AuthenticationService {
         generateAndSetTokens(response, new CustomUserDetails(savedUser));
     }
 
-    public void authenticate(LoginRequest request, HttpServletResponse response) {
+    public void authenticate(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
@@ -60,6 +66,7 @@ public class AuthenticationService {
         var user = repository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         generateAndSetTokens(response, new CustomUserDetails(user));
+        mergeGuestCartIfPresent(httpRequest, response, user.getEmail());
     }
 
     public UserResponse getMe(String email) {
@@ -147,5 +154,16 @@ public class AuthenticationService {
         } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }
+    }
+
+    private void mergeGuestCartIfPresent(HttpServletRequest request, HttpServletResponse response, String userEmail) {
+        guestSessionService.readGuestSessionId(request).ifPresent(guestSessionId -> {
+            try {
+                cartService.mergeGuestSessionCartIntoUser(guestSessionId, userEmail);
+                guestSessionService.clearGuestSession(request, response);
+            } catch (RuntimeException ex) {
+                log.warn("Guest cart merge failed for userEmail={} guestSessionId={}: {}", userEmail, guestSessionId, ex.getMessage());
+            }
+        });
     }
 }

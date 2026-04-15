@@ -40,9 +40,10 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<String> authenticate(
             @Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response
     ) {
-        service.authenticate(request, response);
+        service.authenticate(request, httpRequest, response);
         return ResponseEntity.ok("User authenticated successfully");
     }
 

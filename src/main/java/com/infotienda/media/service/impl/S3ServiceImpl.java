@@ -2,7 +2,6 @@ package com.infotienda.media.service.impl;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.infotienda.media.exception.S3Exception;
 import java.io.File;

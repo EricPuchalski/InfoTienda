@@ -36,6 +36,8 @@ aws:
 
 application:
   security:
+    guest-session:
+      cookie-secure: ${GUEST_SESSION_COOKIE_SECURE:true}
     jwt:
       secret-key: ${JWT_SECRET_KEY}
       expiration: ${JWT_EXPIRATION}

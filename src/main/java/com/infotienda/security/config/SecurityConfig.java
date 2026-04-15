@@ -10,9 +10,12 @@ import com.infotienda.security.model.CustomUserDetails;
 import com.infotienda.security.repository.UserRepository;
 import com.infotienda.security.service.CustomOAuth2UserService;
 import com.infotienda.security.service.JwtService;
+import com.infotienda.cart.service.CartService;
+import com.infotienda.cart.service.GuestSessionService;
 import com.infotienda.core.constant.CookieConstants;
 import com.infotienda.core.util.CookieUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -38,6 +41,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -47,6 +51,8 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final CookieUtil cookieUtil;
     private final UserRepository userRepository;
+    private final CartService cartService;
+    private final GuestSessionService guestSessionService;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
     private final RestAccessDeniedHandler restAccessDeniedHandler;
 
@@ -70,6 +76,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**", "/api/v1/categories").permitAll()
                         .requestMatchers("/api/v1/admin/**", "/api/v1/categories/**").hasAuthority(Role.ADMIN.name())
                         .requestMatchers("/api/v1/user").hasAnyAuthority(Role.USER.name(), Role.ADMIN.name())
+                        .requestMatchers("/api/v1/cart/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/v1/products/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/products/**").hasAuthority(Role.ADMIN.name())
                         .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAuthority(Role.ADMIN.name())
@@ -111,6 +118,14 @@ public class SecurityConfig {
 
             cookieUtil.createCookie(response, CookieConstants.ACCESS_TOKEN_COOKIE_NAME, jwtToken, jwtService.getJwtExpiration());
             cookieUtil.createCookie(response, CookieConstants.REFRESH_TOKEN_COOKIE_NAME, refreshToken, jwtService.getRefreshExpiration());
+            guestSessionService.readGuestSessionId(request).ifPresent(guestSessionId -> {
+                try {
+                    cartService.mergeGuestSessionCartIntoUser(guestSessionId, user.getEmail());
+                    guestSessionService.clearGuestSession(request, response);
+                } catch (RuntimeException ex) {
+                    log.warn("Guest cart merge failed on OAuth2 login for userEmail={} guestSessionId={}: {}", user.getEmail(), guestSessionId, ex.getMessage());
+                }
+            });
 
             response.sendRedirect("http://localhost:5173/");
         };
