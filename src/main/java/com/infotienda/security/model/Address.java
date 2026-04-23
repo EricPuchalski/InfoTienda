@@ -33,6 +33,12 @@ public class Address {
     @Column(nullable = false)
     private String street;
 
+    @Column
+    private String number;
+
+    @Column
+    private String apartment;
+
     @Column(nullable = false)
     private String city;
 
@@ -44,4 +50,7 @@ public class Address {
 
     @Column(nullable = false)
     private String country;
+
+    @Column
+    private String reference;
 }
