@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+/.m2user
+*.js
+*.py
+docker-compose.yml
