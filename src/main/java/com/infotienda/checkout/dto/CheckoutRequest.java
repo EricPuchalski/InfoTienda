@@ -1,6 +1,7 @@
 package com.infotienda.checkout.dto;
 
 import com.infotienda.order.model.DeliveryMethod;
+import com.infotienda.order.model.PaymentMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -17,6 +18,9 @@ public class CheckoutRequest {
 
     @NotNull(message = "deliveryMethod is required")
     private DeliveryMethod deliveryMethod;
+
+    @NotNull(message = "paymentMethod is required")
+    private PaymentMethod paymentMethod;
 
     @Valid
     private CheckoutAddressRequest shippingAddress;

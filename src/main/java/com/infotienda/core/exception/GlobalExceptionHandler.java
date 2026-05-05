@@ -42,6 +42,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(PaymentIntegrationException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentIntegrationException(PaymentIntegrationException ex, WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.BAD_GATEWAY.value())
+                .error("Payment Integration Error")
+                .message(ex.getMessage())
+                .path(request.getDescription(false))
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_GATEWAY);
+    }
+
     @ExceptionHandler(S3Exception.class)
     public ResponseEntity<ErrorResponse> handleS3Exception(S3Exception ex, WebRequest request) {
         ErrorResponse errorResponse = ErrorResponse.builder()

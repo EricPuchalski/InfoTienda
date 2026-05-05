@@ -53,6 +53,10 @@ public class Order extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderStatus status;
 
     @Column(nullable = false, precision = 10, scale = 2)
@@ -63,4 +67,25 @@ public class Order extends BaseEntity {
 
     @Column
     private String receiverName;
+
+    @Column(name = "external_reference", unique = true)
+    private String externalReference;
+
+    @Column(name = "mercado_pago_preference_id")
+    private String mercadoPagoPreferenceId;
+
+    @Column(name = "mercado_pago_payment_id")
+    private Long mercadoPagoPaymentId;
+
+    @Column(name = "mercado_pago_status")
+    private String mercadoPagoStatus;
+
+    @Column(name = "mercado_pago_status_detail")
+    private String mercadoPagoStatusDetail;
+
+    @Column(name = "mercado_pago_init_point", columnDefinition = "TEXT")
+    private String mercadoPagoInitPoint;
+
+    @Column(name = "mercado_pago_sandbox_init_point", columnDefinition = "TEXT")
+    private String mercadoPagoSandboxInitPoint;
 }

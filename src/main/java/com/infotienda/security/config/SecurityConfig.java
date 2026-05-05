@@ -60,6 +60,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/v1/payments/mercado-pago/webhook")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -77,9 +78,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/**", "/api/v1/categories/**").hasAuthority(Role.ADMIN.name())
                         .requestMatchers("/api/v1/user").hasAnyAuthority(Role.USER.name(), Role.ADMIN.name())
                         .requestMatchers("/api/v1/cart/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/v1/products/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/products/**").hasAuthority(Role.ADMIN.name())
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAuthority(Role.ADMIN.name())
+                        .requestMatchers("/api/v1/payments/mercado-pago/webhook").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/products/**"
+                        ).hasAuthority(Role.ADMIN.name())
+                        .requestMatchers(
+                                HttpMethod.PUT,
+                                "/api/v1/products/**"
+                        ).hasAuthority(Role.ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

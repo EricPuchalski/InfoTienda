@@ -16,11 +16,15 @@ import com.infotienda.order.model.DeliveryMethod;
 import com.infotienda.order.model.Order;
 import com.infotienda.order.model.OrderItem;
 import com.infotienda.order.model.OrderStatus;
+import com.infotienda.order.model.PaymentMethod;
 import com.infotienda.order.repository.OrderRepository;
+import com.infotienda.payment.dto.MercadoPagoPreferenceResult;
+import com.infotienda.payment.service.MercadoPagoService;
 import com.infotienda.security.model.Address;
 import com.infotienda.security.model.User;
 import com.infotienda.security.repository.AddressRepository;
 import com.infotienda.security.repository.UserRepository;
+import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +39,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     private final CartRepository cartRepository;
     private final AddressRepository addressRepository;
     private final OrderRepository orderRepository;
+    private final MercadoPagoService mercadoPagoService;
 
     @Override
     @Transactional
@@ -61,6 +66,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         Order order = new Order();
         order.setUser(user);
         order.setDeliveryMethod(request.getDeliveryMethod());
+        order.setPaymentMethod(request.getPaymentMethod());
         order.setShippingAddress(shippingAddress);
         order.setStatus(OrderStatus.PENDING);
         order.setTotalAmount(calculateTotal(cart.getItems()));
@@ -69,10 +75,20 @@ public class CheckoutServiceImpl implements CheckoutService {
         order.setOrderItems(buildOrderItems(order, cart.getItems()));
 
         Order savedOrder = orderRepository.save(order);
+        MercadoPagoPreferenceResult preference = mercadoPagoService.createCheckoutPreference(savedOrder);
+        savedOrder.setExternalReference(preference.getExternalReference());
+        savedOrder.setMercadoPagoPreferenceId(preference.getPreferenceId());
+        savedOrder.setMercadoPagoInitPoint(preference.getInitPoint());
+        savedOrder.setMercadoPagoSandboxInitPoint(preference.getSandboxInitPoint());
+        savedOrder = orderRepository.save(savedOrder);
         return mapToResponse(savedOrder);
     }
 
     private void validateDeliveryRequest(CheckoutRequest request) {
+        if (request.getPaymentMethod() != PaymentMethod.MERCADO_PAGO) {
+            throw new ResourceConflictException("paymentMethod is not supported");
+        }
+
         if (request.getDeliveryMethod() == DeliveryMethod.SHIPPING) {
             if (request.getShippingAddress() == null) {
                 throw new ResourceConflictException("shippingAddress is required for SHIPPING delivery");
@@ -117,7 +133,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     }
 
     private List<OrderItem> buildOrderItems(Order order, List<CartItem> cartItems) {
-        return cartItems.stream()
+        return new ArrayList<>(cartItems.stream()
                 .map(cartItem -> {
                     OrderItem orderItem = new OrderItem();
                     orderItem.setOrder(order);
@@ -126,7 +142,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                     orderItem.setUnitPrice(cartItem.getProduct().getPrice());
                     return orderItem;
                 })
-                .toList();
+                .toList());
     }
 
     private BigDecimal calculateTotal(List<CartItem> items) {
@@ -139,11 +155,15 @@ public class CheckoutServiceImpl implements CheckoutService {
         return CheckoutResponse.builder()
                 .orderId(order.getId())
                 .deliveryMethod(order.getDeliveryMethod())
+                .paymentMethod(order.getPaymentMethod())
                 .status(order.getStatus())
                 .totalAmount(order.getTotalAmount())
                 .createdAt(order.getCreatedAt())
                 .pickupStoreName(order.getPickupStoreName())
                 .receiverName(order.getReceiverName())
+                .mercadoPagoPreferenceId(order.getMercadoPagoPreferenceId())
+                .mercadoPagoInitPoint(order.getMercadoPagoInitPoint())
+                .mercadoPagoSandboxInitPoint(order.getMercadoPagoSandboxInitPoint())
                 .shippingAddress(mapAddress(order.getShippingAddress()))
                 .items(order.getOrderItems().stream().map(this::mapItem).toList())
                 .build();
