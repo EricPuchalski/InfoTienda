@@ -40,3 +40,4 @@ refactor.py
 *.js
 /.m2user
 
+docker-compose.yml
